@@ -42,7 +42,7 @@ def bench(label, f):
     if counter:
         logger.info("{}: ".format(label))
         logger.info("\t{} items".format(counter))
-        logger.info("\t{:.2}ms".format(after - before))
+        logger.info("\t{:.2}s".format(after - before))
 
 
 def main():
@@ -113,5 +113,5 @@ if __name__ == "__main__":
     before = time.time()
     main()
     after = time.time()
-    logger.info("processed {} items in {:.2} ms\n".format(total_items, after - before))
+    logger.info("processed {} items in {:.2}s\n".format(total_items, after - before))
 
