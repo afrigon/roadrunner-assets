@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-from psd_tools import PSDImage
+import subprocess
 import time
 import sys
 import os
@@ -11,8 +11,15 @@ def usage():
     print("{} output_dir".format(__file__))
     exit()
 
+def has_image_magick():
+    return subprocess.run("convert --version", stdout=subprocess.DEVNULL, shell=True).returncode == 0
+
 if len(sys.argv) != 2:
     usage()
+
+if not has_image_magick():
+    print("imagemagick must be installed before using this script")
+    exit()
 
 # Logger setup
 logging.basicConfig(level=logging.ERROR, format='%(message)s')
@@ -57,9 +64,6 @@ def render_thumbnail(path):
 
     source_file = (src / path)
 
-    psd = PSDImage.open(source_file)
-    img = psd.composite()
-
     for size in sizes:
         target_file = dst / source_file.relative_to(src).with_name("{}@{}.png".format(path.with_suffix("").name, size))
 
@@ -69,8 +73,7 @@ def render_thumbnail(path):
         logger.debug("{} at {size}x{size}:\n\tfrom: {}\n\tto: {}\n".format(source_file.name, source_file, target_file, size=size))
         counter += 1
 
-        thumb = img.resize((size, size))
-        thumb.save(str(target_file))
+        subprocess.run("convert '{}[0]' -resize {size}x{size} -density 300 -quality 100 '{}'".format(source_file, target_file, size=size), shell=True)
 
 def render_psd(path):
     global counter
@@ -97,8 +100,9 @@ def render_psd(path):
         logger.debug("{}:\n\tfrom: {}\n\tto: {}\n".format(f.name, source_file, target_file))
         counter += 1
 
-        psd = PSDImage.open(source_file)
-        psd.composite().save(target_file)
+        subprocess.run("convert '{}[0]' {}".format(source_file, target_file), shell=True)
+        #psd = PSDImage.open(source_file)
+        #psd.composite().save(target_file)
 
 def has_changed(target, source):
     if not target.exists():
