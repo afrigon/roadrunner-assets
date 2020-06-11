@@ -56,6 +56,7 @@ def main():
     bench("textures", lambda: render_psd(res / Path("textures")))
     bench("icon", lambda: render_thumbnail(icon / Path("icon.psd")))
     bench("fonts", lambda: copy_directory(res / Path("fonts")))
+    bench("data", lambda: copy_directory(res / Path("data")))
 
 def render_thumbnail(path):
     global counter
