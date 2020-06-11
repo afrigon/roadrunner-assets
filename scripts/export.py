@@ -55,6 +55,7 @@ def bench(label, f):
 def main():
     bench("textures", lambda: render_psd(res / Path("textures")))
     bench("icon", lambda: render_thumbnail(icon / Path("icon.psd")))
+    bench("fonts", lambda: copy_directory(res / Path("fonts")))
 
 def render_thumbnail(path):
     global counter
@@ -74,6 +75,36 @@ def render_thumbnail(path):
         counter += 1
 
         subprocess.run("convert '{}[0]' -resize {size}x{size} -density 300 -quality 100 '{}'".format(source_file, target_file, size=size), shell=True)
+
+def copy_directory(path):
+    global counter
+
+    mkdir(dst / path)
+    files, directories = [], []
+
+    for x in (src / path).iterdir():
+        if x.is_dir():
+            directories.append(x)
+        else:
+            target_file = dst / x.relative_to(src)
+
+            if has_changed(target_file, x):
+                files.append(x)
+
+    for directory in directories:
+        copy_directory(directory.relative_to(src))
+
+    for f in files:
+        source_file = str(f)
+        target_file = str(dst / f.relative_to(src))
+
+        logger.debug("{}:\n\tfrom: {}\n\tto: {}\n".format(f.name, source_file, target_file))
+        counter += 1
+
+        subprocess.run("cp '{}' '{}'".format(source_file, target_file), shell=True)
+
+
+
 
 def render_psd(path):
     global counter
