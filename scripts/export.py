@@ -6,13 +6,19 @@ import time
 import sys
 import os
 import logging
+import shutil
 
 def usage():
     print("{} output_dir".format(__file__))
     exit()
 
+def get_imagemagick() -> str:
+    if sys.platform == "win32":
+        return "magick.exe"
+    return "convert"
+
 def has_image_magick():
-    return subprocess.run("convert --version", stdout=subprocess.DEVNULL, shell=True).returncode == 0
+    return subprocess.run("{} --version".format(get_imagemagick()), stdout=subprocess.DEVNULL, shell=True).returncode == 0
 
 if len(sys.argv) != 2:
     usage()
@@ -75,7 +81,7 @@ def render_thumbnail(path):
         logger.debug("{} at {size}x{size}:\n\tfrom: {}\n\tto: {}\n".format(source_file.name, source_file, target_file, size=size))
         counter += 1
 
-        subprocess.run("convert '{}[0]' -resize {size}x{size} -density 300 -quality 100 '{}'".format(source_file, target_file, size=size), shell=True)
+        subprocess.run("{} \"{}[0]\" -resize {size}x{size} -density 300 -quality 100 \"{}\"".format(get_imagemagick(), source_file, target_file, size=size), shell=True)
 
 def copy_directory(path):
     global counter
@@ -102,7 +108,7 @@ def copy_directory(path):
         logger.debug("{}:\n\tfrom: {}\n\tto: {}\n".format(f.name, source_file, target_file))
         counter += 1
 
-        subprocess.run("cp '{}' '{}'".format(source_file, target_file), shell=True)
+        shutil.copy(source_file, target_file)
 
 
 
@@ -132,7 +138,7 @@ def render_psd(path):
         logger.debug("{}:\n\tfrom: {}\n\tto: {}\n".format(f.name, source_file, target_file))
         counter += 1
 
-        subprocess.run("convert '{}[0]' {}".format(source_file, target_file), shell=True)
+        subprocess.run("{} \"{}[0]\" {}".format(get_imagemagick(), source_file, target_file), shell=True)
         #psd = PSDImage.open(source_file)
         #psd.composite().save(target_file)
 
